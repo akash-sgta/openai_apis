@@ -168,3 +168,4 @@ cython_debug/
 /.idea/vcs.xml
 /secret/keys.json
 openai_apis.code-workspace
+gpt_3~5/tmpfiles/*.py
