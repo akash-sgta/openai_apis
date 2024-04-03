@@ -1,33 +1,20 @@
 # =========================================
 import json
-
 from openai import OpenAI
-from json import loads
 from pathlib import Path
 import os
 
 # =========================================
 BASE_DIR = Path(__file__).resolve().parent.parent
-MODEL = "gpt-3.5-turbo"
-CONTEXT_PROMPT = (
-    "You are a python developer, who is proficient in Django rest framework. You have been given a "
-    "task to add code comment and documentation to existing python code without disturbing the core "
-    "code or imports. Just send back the code snippet only."
-)
-WORK_DIR = (
-    "/home/sengupta/PycharmProjects/medical-backend/backend/"
-    + "app_cdn/"
-    + "pkg_models/"
-)
 
 
-def chat(obj: OpenAI, text: str):
+def chat(obj: OpenAI, model: str, context: str, text: str) -> str:
     completion = obj.chat.completions.create(
-        model=MODEL,
+        model=model,
         messages=[
             {
                 "role": "system",
-                "content": CONTEXT_PROMPT,
+                "content": context,
             },
             {
                 "role": "user",
@@ -42,17 +29,24 @@ def chat(obj: OpenAI, text: str):
 if __name__ == "__main__":
     try:
         with open(os.path.join(BASE_DIR, "secret", "keys.json"), "r") as fp:
+
             json_data = json.loads(fp.read())
-            client = OpenAI(api_key=json_data["key"])
-            for node in os.listdir(WORK_DIR):
+            api_key = json_data["key"]
+            work_dir = json_data["source_dir"]
+            context = json_data["context"]
+            model = json_data["model"]
+
+            client = OpenAI(api_key=api_key)
+            for node in os.listdir(work_dir):
                 if node[:2] != "__":
-                    print(node)
                     with open(
-                        os.path.join(WORK_DIR, node),
+                        os.path.join(work_dir, node),
                         "r",
                     ) as file:
                         response = chat(
                             obj=client,
+                            model=model,
+                            context=context,
                             text=file.read(),
                         )
                         with open(
